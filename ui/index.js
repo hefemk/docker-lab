@@ -8,16 +8,19 @@ jQuery(function () {
         error: function (err) { console.log(err) },
     });
 
-    $('#cpuStress').on('change', () => {
-        const load = $('#cpuStress').val();
-        $('#cpuLoad').html(load);
-    });
-
     $('button#btnStress').on('click', () => {
-        const load = $('#cpuStress').val();
+        const worker = $('#worker').val();
+        const load = $('#load').val();
+        const timeout = $('#timeout').val();
         $.ajax({
-            url: '/stress/' + load,
-            method: 'GET',
+            url: '/stress',
+            method: 'POST',
+            dataType: 'json',
+            data: {
+                "cpu": worker,
+                "load": load,
+                "timeout": timeout
+            },
             success: function (res) {
             },
             error: function (err) { console.log(err) },

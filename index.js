@@ -69,6 +69,8 @@ var port = process.env.PORT || 3000;
 app.use((0, express_fileupload_1["default"])({
     createParentPath: true
 }));
+app.use(express_1["default"].json());
+app.use(express_1["default"].urlencoded({ extended: true }));
 app.use('/ui', express_1["default"].static('ui'));
 app.get('/', function (req, res) {
     res.sendFile(p.join(__dirname, '/ui/index.html'));
@@ -84,10 +86,20 @@ app.get('/cpu-usage', function (req, res) { return __awaiter(void 0, void 0, voi
         return [2 /*return*/];
     });
 }); });
-app.get('/stress/:load', function (req, res) {
-    var load = req.params.load;
-    (0, child_process_1.exec)("stress-ng -c 0 -l ".concat(load, " --timeout 30s"), function (error, stdout, stderr) {
-        res.send(stderr);
+app.post('/stress', function (req, res) {
+    var body = req.body;
+    var cpu = body['cpu'];
+    var load = body['load'];
+    var timeout = body['timeout'];
+    (0, child_process_1.exec)("stress-ng -c ".concat(cpu, " -l ").concat(load, " --timeout ").concat(timeout), function (error, stdout, stderr) {
+        if (error) {
+            console.error(error);
+            res.status(500).send(stderr);
+        }
+        else {
+            console.log(stdout);
+            res.status(202).send();
+        }
     });
 });
 app.get('/env', function (req, res) {

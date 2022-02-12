@@ -12,6 +12,8 @@ app.use(
         createParentPath: true
     })
 );
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use('/ui', express.static('ui'));
 
 app.get('/', (req, res) => {
@@ -28,10 +30,19 @@ app.get('/cpu-usage', async (req, res) => {
     });
 });
 
-app.get('/stress/:load', (req, res) => {
-    const load = req.params.load;
-    exec(`stress-ng -c 0 -l ${load} --timeout 30s`, (error: ExecException | null, stdout: string, stderr: string) => {
-        res.send(stderr);
+app.post('/stress', (req, res) => {
+    const body = req.body;
+    const cpu = body['cpu'];
+    const load = body['load'];
+    const timeout = body['timeout'];
+    exec(`stress-ng -c ${cpu} -l ${load} --timeout ${timeout}`, (error: ExecException | null, stdout: string, stderr: string) => {
+        if (error) {
+            console.error(error);
+            res.status(500).send(stderr);
+        } else {
+            console.log(stdout);
+            res.status(202).send();
+        }
     });
 });
 
