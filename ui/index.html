@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="ui/jquery-3.6.0.min.js"></script>
+    <script src="ui/index.js" defer="defer"></script>
+    <style>
+        .card {
+            margin: 1rem;
+            padding: 1rem;
+            box-shadow: 0 0 5px lightgray;
+        }
+    </style>
+    <title>docker-lab</title>
+</head>
+
+<body>
+    <h1 style="margin-bottom: 0;">
+        Lab name: 
+        <span id="labName"></span>
+    </h1>
+    <small>Read from env "LAB_NAME".</small>
+    <div class="card">
+        <h2>CPU</h2>
+        <div id="cpuUsage"></div>
+        <hr/>
+        <label for="volume">
+            CPU Stress 
+            <span id="cpuLoad"></span>
+             (%)
+        </label>
+        <input type="range" id="cpuStress" name="cpuStress" min="0" max="100">
+        
+        <button id="btnStress">Stress 30s</button>    
+    </div>
+    
+    <div class="card">
+        <h2>Environment Variables</h2>
+        <div id="env"></div>
+        <button id="btnEnv">Env</button>
+    </div>
+
+    <div class="card">
+        <h2>Files</h2>
+        <small>./uploads/</small>
+        <ul id="fileList"></ul>
+        <button id="btnGetFileList">Get file list</button>
+        <hr/>
+        <form id="formFileUpload" enctype="multipart/form-data" action="files" method="POST">
+            <input type="file" id="fileUpload" name="fileUpload" />
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+</body>
+
+</html>
