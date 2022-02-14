@@ -27,6 +27,19 @@ jQuery(function () {
         });
     });
 
+    $('button#btnStress2').on('click', () => {
+        $.ajax({
+            url: '/stress2',
+            method: 'POST',
+            dataType: 'json',
+            data: {
+            },
+            success: function (res) {
+            },
+            error: function (err) { console.log(err) },
+        });
+    });
+
     $('button#btnEnv').on('click', () => {
         $.ajax({
             url: '/env',

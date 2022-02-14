@@ -1,9 +1,10 @@
 import express from 'express';
 import fileUpload, { UploadedFile } from 'express-fileupload';
 import { readdirSync } from 'fs';
-import * as os from 'os-utils';
 import * as p from 'path';
 import { exec, ExecException } from 'child_process';
+const cgroup = require('@adobe/cgroup-metrics');
+const { Worker } = require('worker_threads');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -24,10 +25,37 @@ app.get('/name', (req, res) => {
     res.send(process.env.LAB_NAME || 'DEFAULT');
 });
 
+let _lastCpuAcctUsage: any = null;
 app.get('/cpu-usage', async (req, res) => {
-    os.cpuUsage(function (v) {
-        res.send('CPU Usage (%): ' + v * 100);
+    try {
+        const cpu = cgroup.cpu;
+        const currentCpuacctUsage = await cpu.usage();
+    
+        if (_lastCpuAcctUsage) {
+            const calculateUsage = await cpu.calculateUsage(
+                _lastCpuAcctUsage,
+                currentCpuacctUsage
+            );
+            res.send(`CPU Usage (%): ${calculateUsage}`);
+        } else {
+            _lastCpuAcctUsage = currentCpuacctUsage;
+            res.send(`CPU Usage (%): 0`);
+        }
+    } catch (e) {
+        res.status(500).send(e);
+    }
+});
+
+app.post('/stress2', (req, res) => {
+    const workerScriptFilePath = require.resolve('./worker-script.js');
+    const worker = new Worker(workerScriptFilePath);
+    worker.on('message', (output: any) => console.log(output));
+    worker.on('error', (error: any) => console.error(error));
+    worker.on('exit', (code: number) => {
+        if (code !== 0)
+            throw new Error(`Worker stopped with exit code ${code}`);
     });
+    res.status(202).send();
 });
 
 app.post('/stress', (req, res) => {
