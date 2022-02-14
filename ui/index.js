@@ -8,25 +8,6 @@ jQuery(function () {
         error: function (err) { console.log(err) },
     });
 
-    $('button#btnStress').on('click', () => {
-        const worker = $('#worker').val();
-        const load = $('#load').val();
-        const timeout = $('#timeout').val();
-        $.ajax({
-            url: '/stress',
-            method: 'POST',
-            dataType: 'json',
-            data: {
-                "cpu": worker,
-                "load": load,
-                "timeout": timeout
-            },
-            success: function (res) {
-            },
-            error: function (err) { console.log(err) },
-        });
-    });
-
     $('button#btnStress2').on('click', () => {
         $.ajax({
             url: '/stress2',
@@ -72,14 +53,4 @@ jQuery(function () {
         });
     });
 
-    setInterval(() => {
-        $.ajax({
-            url: '/cpu-usage',
-            method: 'GET',
-            success: function (res) {
-                $('#cpuUsage').html(res);
-            },
-            error: function (err) { console.log(err) },
-        });
-    }, 1000);
 });
