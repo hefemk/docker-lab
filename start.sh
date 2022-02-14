@@ -1,3 +1,6 @@
+#!/bin/bash
 
-/usr/sbin/sshd -D
-node index.js
+node index.js &
+/usr/sbin/sshd -D &
+wait -n
+exit $?
