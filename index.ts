@@ -1,6 +1,6 @@
 import express from 'express';
 import fileUpload, { UploadedFile } from 'express-fileupload';
-import { readdirSync } from 'fs';
+import { readdirSync, rmSync } from 'fs';
 import * as p from 'path';
 import { exec, ExecException } from 'child_process';
 const cgroup = require('@adobe/cgroup-metrics');
@@ -16,6 +16,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/ui', express.static('ui'));
+app.use('/images', express.static('images'));
 
 app.get('/', (req, res) => {
     res.sendFile(p.join(__dirname, '/ui/index.html'));

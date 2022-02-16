@@ -73,6 +73,7 @@ app.use((0, express_fileupload_1["default"])({
 app.use(express_1["default"].json());
 app.use(express_1["default"].urlencoded({ extended: true }));
 app.use('/ui', express_1["default"].static('ui'));
+app.use('/images', express_1["default"].static('images'));
 app.get('/', function (req, res) {
     res.sendFile(p.join(__dirname, '/ui/index.html'));
 });
