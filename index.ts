@@ -1,10 +1,10 @@
 import express from 'express';
 import fileUpload, { UploadedFile } from 'express-fileupload';
-import { readdirSync, rmSync } from 'fs';
+import { readdirSync } from 'fs';
 import * as p from 'path';
 import { exec, ExecException } from 'child_process';
-const cgroup = require('@adobe/cgroup-metrics');
 const { Worker } = require('worker_threads');
+const top = require('process-top')();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -26,28 +26,19 @@ app.get('/name', (req, res) => {
     res.send(process.env.LAB_NAME || 'DEFAULT');
 });
 
-let _lastCpuAcctUsage: any = null;
 app.get('/cpu-usage', async (req, res) => {
     try {
-        const cpu = cgroup.cpu;
-        const currentCpuacctUsage = await cpu.usage();
-    
-        if (_lastCpuAcctUsage) {
-            const calculateUsage = await cpu.calculateUsage(
-                _lastCpuAcctUsage,
-                currentCpuacctUsage
-            );
-            res.send(`CPU Usage (%): ${calculateUsage}`);
-        } else {
-            _lastCpuAcctUsage = currentCpuacctUsage;
-            res.send(`CPU Usage (%): 0`);
-        }
+        /*
+         * {"time":3222298.3,"percent":0.006083546020553094,"system":17753,"user":1850}
+         */
+        const cpu = top.cpu();
+        res.send(`${cpu.percent * 100}`);
     } catch (e) {
         res.status(500).send(e);
     }
 });
 
-app.post('/stress2', (req, res) => {
+app.post('/cpu-load', (req, res) => {
     const workerScriptFilePath = require.resolve('./worker-script.js');
     const worker = new Worker(workerScriptFilePath);
     worker.on('message', (output: any) => console.log(output));
@@ -57,22 +48,6 @@ app.post('/stress2', (req, res) => {
             throw new Error(`Worker stopped with exit code ${code}`);
     });
     res.status(202).send();
-});
-
-app.post('/stress', (req, res) => {
-    const body = req.body;
-    const cpu = body['cpu'];
-    const load = body['load'];
-    const timeout = body['timeout'];
-    exec(`stress-ng -c ${cpu} -l ${load} --timeout ${timeout}`, (error: ExecException | null, stdout: string, stderr: string) => {
-        if (error) {
-            console.error(error);
-            res.status(500).send(stderr);
-        } else {
-            console.log(stdout);
-            res.status(202).send();
-        }
-    });
 });
 
 app.get('/env', (req, res) => {

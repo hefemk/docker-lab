@@ -62,9 +62,8 @@ var express_1 = __importDefault(require("express"));
 var express_fileupload_1 = __importDefault(require("express-fileupload"));
 var fs_1 = require("fs");
 var p = __importStar(require("path"));
-var child_process_1 = require("child_process");
-var cgroup = require('@adobe/cgroup-metrics');
 var Worker = require('worker_threads').Worker;
+var top = require('process-top')();
 var app = (0, express_1["default"])();
 var port = process.env.PORT || 3000;
 app.use((0, express_fileupload_1["default"])({
@@ -80,37 +79,20 @@ app.get('/', function (req, res) {
 app.get('/name', function (req, res) {
     res.send(process.env.LAB_NAME || 'DEFAULT');
 });
-var _lastCpuAcctUsage = null;
 app.get('/cpu-usage', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var cpu, currentCpuacctUsage, calculateUsage, e_1;
+    var cpu;
     return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                _a.trys.push([0, 5, , 6]);
-                cpu = cgroup.cpu;
-                return [4 /*yield*/, cpu.usage()];
-            case 1:
-                currentCpuacctUsage = _a.sent();
-                if (!_lastCpuAcctUsage) return [3 /*break*/, 3];
-                return [4 /*yield*/, cpu.calculateUsage(_lastCpuAcctUsage, currentCpuacctUsage)];
-            case 2:
-                calculateUsage = _a.sent();
-                res.send("CPU Usage (%): ".concat(calculateUsage));
-                return [3 /*break*/, 4];
-            case 3:
-                _lastCpuAcctUsage = currentCpuacctUsage;
-                res.send("CPU Usage (%): 0");
-                _a.label = 4;
-            case 4: return [3 /*break*/, 6];
-            case 5:
-                e_1 = _a.sent();
-                res.status(500).send(e_1);
-                return [3 /*break*/, 6];
-            case 6: return [2 /*return*/];
+        try {
+            cpu = top.cpu();
+            res.send("".concat(cpu.percent * 100));
         }
+        catch (e) {
+            res.status(500).send(e);
+        }
+        return [2 /*return*/];
     });
 }); });
-app.post('/stress2', function (req, res) {
+app.post('/cpu-load', function (req, res) {
     var workerScriptFilePath = require.resolve('./worker-script.js');
     var worker = new Worker(workerScriptFilePath);
     worker.on('message', function (output) { return console.log(output); });
@@ -120,22 +102,6 @@ app.post('/stress2', function (req, res) {
             throw new Error("Worker stopped with exit code ".concat(code));
     });
     res.status(202).send();
-});
-app.post('/stress', function (req, res) {
-    var body = req.body;
-    var cpu = body['cpu'];
-    var load = body['load'];
-    var timeout = body['timeout'];
-    (0, child_process_1.exec)("stress-ng -c ".concat(cpu, " -l ").concat(load, " --timeout ").concat(timeout), function (error, stdout, stderr) {
-        if (error) {
-            console.error(error);
-            res.status(500).send(stderr);
-        }
-        else {
-            console.log(stdout);
-            res.status(202).send();
-        }
-    });
 });
 app.get('/env', function (req, res) {
     res.send(process.env);

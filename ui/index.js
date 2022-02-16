@@ -8,9 +8,9 @@ jQuery(function () {
         error: function (err) { console.log(err) },
     });
 
-    $('button#btnStress2').on('click', () => {
+    $('button#btnGenerateCPULoad').on('click', () => {
         $.ajax({
-            url: '/stress2',
+            url: '/cpu-load',
             method: 'POST',
             dataType: 'json',
             data: {
@@ -53,4 +53,14 @@ jQuery(function () {
         });
     });
 
+    setInterval(() => {
+        $.ajax({
+            url: '/cpu-usage',
+            method: 'GET',
+            success: function (res) {
+                $('#cpuUsage').html('CPU: ' + res + ' %');
+            },
+            error: function (err) { console.log(err) },
+        });
+    }, 1000);
 });
