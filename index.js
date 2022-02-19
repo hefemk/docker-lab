@@ -62,6 +62,7 @@ var express_1 = __importDefault(require("express"));
 var express_fileupload_1 = __importDefault(require("express-fileupload"));
 var fs_1 = require("fs");
 var p = __importStar(require("path"));
+var cgroup = require('@adobe/cgroup-metrics');
 var Worker = require('worker_threads').Worker;
 var top = require('process-top')();
 var app = (0, express_1["default"])();
@@ -90,6 +91,37 @@ app.get('/cpu-usage', function (req, res) { return __awaiter(void 0, void 0, voi
             res.status(500).send(e);
         }
         return [2 /*return*/];
+    });
+}); });
+var _lastCpuAcctUsage = null;
+app.get('/cpu-usage-cgroup', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var cpu, currentCpuacctUsage, calculateUsage, e_1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 5, , 6]);
+                cpu = cgroup.cpu;
+                return [4 /*yield*/, cpu.usage()];
+            case 1:
+                currentCpuacctUsage = _a.sent();
+                if (!_lastCpuAcctUsage) return [3 /*break*/, 3];
+                return [4 /*yield*/, cpu.calculateUsage(_lastCpuAcctUsage, currentCpuacctUsage)];
+            case 2:
+                calculateUsage = _a.sent();
+                _lastCpuAcctUsage = currentCpuacctUsage;
+                res.send("".concat(calculateUsage));
+                return [3 /*break*/, 4];
+            case 3:
+                _lastCpuAcctUsage = currentCpuacctUsage;
+                res.send("0");
+                _a.label = 4;
+            case 4: return [3 /*break*/, 6];
+            case 5:
+                e_1 = _a.sent();
+                res.status(500).send(e_1);
+                return [3 /*break*/, 6];
+            case 6: return [2 /*return*/];
+        }
     });
 }); });
 app.post('/cpu-load', function (req, res) {

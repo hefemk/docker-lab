@@ -3,6 +3,7 @@ import fileUpload, { UploadedFile } from 'express-fileupload';
 import { readdirSync } from 'fs';
 import * as p from 'path';
 import { exec, ExecException } from 'child_process';
+const cgroup = require('@adobe/cgroup-metrics');
 const { Worker } = require('worker_threads');
 const top = require('process-top')();
 
@@ -33,6 +34,28 @@ app.get('/cpu-usage', async (req, res) => {
          */
         const cpu = top.cpu();
         res.send(`${cpu.percent * 100}`);
+    } catch (e) {
+        res.status(500).send(e);
+    }
+});
+
+let _lastCpuAcctUsage: any = null;
+app.get('/cpu-usage-cgroup', async (req, res) => {
+    try {
+        const cpu = cgroup.cpu;
+        const currentCpuacctUsage = await cpu.usage();
+    
+        if (_lastCpuAcctUsage) {
+            const calculateUsage = await cpu.calculateUsage(
+                _lastCpuAcctUsage,
+                currentCpuacctUsage
+            );
+            _lastCpuAcctUsage = currentCpuacctUsage;
+            res.send(`${calculateUsage}`);
+        } else {
+            _lastCpuAcctUsage = currentCpuacctUsage;
+            res.send(`0`);
+        }
     } catch (e) {
         res.status(500).send(e);
     }

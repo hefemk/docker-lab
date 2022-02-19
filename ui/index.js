@@ -62,5 +62,13 @@ jQuery(function () {
             },
             error: function (err) { console.log(err) },
         });
+        $.ajax({
+            url: '/cpu-usage-cgroup',
+            method: 'GET',
+            success: function (res) {
+                $('#cpuUsageCgroup').html('CPU: ' + res + ' %');
+            },
+            error: function (err) { console.log(err) },
+        });
     }, 1000);
 });
